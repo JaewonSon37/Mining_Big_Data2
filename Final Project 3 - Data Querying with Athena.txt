@@ -1,0 +1,36 @@
+## Data Querying with Athena
+-----------------------------------------------------
+
+-- Create an external table to load data from an S3 CSV file into Athena
+CREATE EXTERNAL TABLE taxi_and_weather 
+     (Hour_Slot STRING,
+      count INT,
+      time STRING,
+      temperature_2m DOUBLE,
+      relative_humidity_2m DOUBLE,
+      precipitation DOUBLE,
+      windspeed_10m DOUBLE,
+      apparent_temperature DOUBLE,
+      windgusts_10m DOUBLE,
+      weathercode INT)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY ',' 
+STORED AS TEXTFILE 
+LOCATION 's3://csc555-jaewon/final_project/2024_chicago_merged_dataset.csv/'
+TBLPROPERTIES ('skip.header.line.count'='1');
+
+-- Query the first 10 rows to check the structure and data of the loaded table
+SELECT * FROM taxi_and_weather LIMIT 10;
+
+-- Create a new table in Parquet format and store the new table to S3 excluding unnecessary columns
+CREATE TABLE "2024_chicago_taxi_and_weather"
+WITH (format = 'PARQUET',
+         external_location = 's3://csc555-jaewon/final_project/2024_chicago_taxi_and_weather/') AS
+SELECT Hour_Slot, count, temperature_2m, relative_humidity_2m, precipitation, 
+           windspeed_10m, apparent_temperature, windgusts_10m, weathercode
+FROM taxi_and_weather
+
+-- Query the first 10 rows to check the structure and data of the loaded table
+SELECT * FROM "2024_chicago_taxi_and_weather" LIMIT 10;
+
+
